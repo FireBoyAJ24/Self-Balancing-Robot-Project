@@ -3,6 +3,8 @@ import random
 import time
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import plotly.graph_objects as go
+import pandas as pd
 
 class robot:
 
@@ -39,6 +41,13 @@ class MPUSimulated:
         self.last_ang_vel = np.zeros(3)
         self.dt = dt
 
+        self.time = [dt*i for i in range(100)]
+
+        self.accel_data = []
+        self.gyro_data = []
+        self.pitch_data = []
+
+
     def get_true_acc(self, robot_id, dt, i) -> tuple:
         lin_vel, ang_vel = p.getBaseVelocity(robot_id)
         pos, orn = p.getBasePositionAndOrientation(robot_id)
@@ -72,11 +81,91 @@ class MPUSimulated:
         accel_body = r.inv().apply(lin_acc_at_mpu + np.array([0, 0, 9.81]))  # include gravity
         gyro_body = r.inv().apply(ang_vel)  # angular velocity same at all points
 
-        return self.add_noise(accel_body, gyro_body)
+        self.accel_data.append(accel_body)
+        self.gyro_data.append(gyro_body)
+        n_accel_body, n_gyro_body = self.add_noise(accel_body, gyro_body)
+
+        return n_accel_body, n_gyro_body
 
     def add_noise(self, accel_body, gyro_body, noise_std=0.01):
         noise_accel = np.random.normal(0, noise_std, size=accel_body.shape)
         noise_gyro = np.random.normal(0, noise_std, size=gyro_body.shape)
         return accel_body + noise_accel, gyro_body + noise_gyro
 
+    def get_pitch(self, accel_body):
+        # Calculate pitch from accelerometer data
+        pitch = np.arctan2(accel_body[0], np.sqrt(accel_body[1]**2 + accel_body[2]**2))
+        self.pitch_data.append(pitch)
+        return pitch
 
+    def plot_pid(self):
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=self.time, y=self.pitch_data, mode='lines', name='Pitch'))
+        fig.update_layout(
+            title='Pitch vs Time',
+            xaxis_title='Time (s)',
+            yaxis_title='Pitch (rad)',
+            template='plotly_white',
+            showlegend=True
+        )
+        fig.show()
+
+    def save_data(self, time_series, pitch_lst):
+
+        df = pd.DataFrame({'Time (s)': time_series})
+        print(time_series)
+        print(pitch_lst)
+        for data in pitch_lst:
+            print(data)
+            for key, value in data.items():
+                df[f'Pitch ({key})'] = value
+
+        df.to_excel("pid_data.xlsx", index=False)
+
+
+import numpy as np
+
+class KalmanFilter:
+    def __init__(self, F, B, H, Q, R, x0, P0):
+        self.F = F  # State transition model
+        self.B = B  
+        self.H = H  
+        self.Q = Q  
+        self.R = R  
+        self.x = x0  
+        self.P = P0  
+    def predict(self, u):
+        # Predict the state and state covariance
+        self.x = np.dot(self.F, self.x) + np.dot(self.B, u)
+        self.P = np.dot(np.dot(self.F, self.P), self.F.T) + self.Q
+        return self.x
+    def update(self, z):
+        # Compute the Kalman gain
+        S = np.dot(np.dot(self.H, self.P), self.H.T) + self.R
+        K = np.dot(np.dot(self.P, self.H.T), np.linalg.inv(S))      
+        # Update the state estimate and covariance matrix
+        y = z - np.dot(self.H, self.x)  
+        self.x = self.x + np.dot(K, y)
+        I = np.eye(self.P.shape[0])
+        self.P = np.dot(np.dot(I - np.dot(K, self.H), self.P), (I - np.dot(K, self.H)).T) + np.dot(np.dot(K, self.R), K.T)
+        return self.x
+# Example usage
+F = np.array([[1, 1], [0, 1]]) 
+B = np.array([[0.5], [1]])     
+H = np.array([[1, 0]])         
+Q = np.array([[1, 0], [0, 1]]) 
+R = np.array([[1]])             
+# Initial state and covariance
+x0 = np.array([[0], [1]]) 
+P0 = np.array([[1, 0], [0, 1]]) 
+# Create Kalman Filter instance
+kf = KalmanFilter(F, B, H, Q, R, x0, P0)
+# Predict and update with the control input and measurement
+u = np.array([[1]])  
+z = np.array([[1]]) 
+# Predict step
+predicted_state = kf.predict(u)
+print("Predicted state:\n", predicted_state)
+# Update step
+updated_state = kf.update(z)
+print("Updated state:\n", updated_state)
