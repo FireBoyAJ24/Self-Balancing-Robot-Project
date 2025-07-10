@@ -2,9 +2,10 @@ import pybullet as p
 import random
 import time
 import numpy as np
-from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Rotation as Rotsc
 import plotly.graph_objects as go
 import pandas as pd
+import plotly.io as pio
 
 class robot:
 
@@ -15,22 +16,34 @@ class robot:
 
 
 class PID:
-    def __init__(self, Kp, Ki, Kd, dt):
+    def __init__(self, Kp, Ki, Kd, dt, windup=0.0):
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
         self.dt = dt
         self.prev_error = 0
         self.integral = 0
+        self.windupmax = windup
 
     def compute(self, setpoint, measured_value):
         error = setpoint - measured_value
+        self.potential = self.Kp * error
         self.integral += error * self.dt
-        derivative = (error - self.prev_error) / self.dt
-        output = (self.Kp * error) + (self.Ki * self.integral) + (self.Kd * derivative)
+        self.derivative = (error - self.prev_error) / self.dt
+        
+        self.antiwindup()  
+        
+        output = () + (self.Ki * self.integral) + (self.Kd * self.derivative)
         self.prev_error = error
         return output
-    
+
+    def antiwindup(self):
+        if self.windupmax != 0.0:
+            if self.integral > self.windupmax:
+                self.Ki = self.windupmax
+            elif self.Ki < -self.windupmax:
+                self.Ki = -self.windupmax
+
 
 class MPUSimulated:
 
@@ -52,7 +65,7 @@ class MPUSimulated:
         lin_vel, ang_vel = p.getBaseVelocity(robot_id)
         pos, orn = p.getBasePositionAndOrientation(robot_id)
 
-        r = R.from_quat(orn)
+        r = Rotsc.from_quat(orn)
         rot_mat = r.as_matrix()  # world_to_body
         # print("Rotation matrix:", rot_mat)
 
@@ -109,6 +122,7 @@ class MPUSimulated:
             showlegend=True
         )
         fig.show()
+        fig.write_image("pitch_vs_time.png")
 
     def save_data(self, time_series, pitch_lst):
 
@@ -121,9 +135,6 @@ class MPUSimulated:
                 df[f'Pitch ({key})'] = value
 
         df.to_excel("pid_data.xlsx", index=False)
-
-
-import numpy as np
 
 class KalmanFilter:
     def __init__(self, F, B, H, Q, R, x0, P0):
@@ -149,23 +160,3 @@ class KalmanFilter:
         I = np.eye(self.P.shape[0])
         self.P = np.dot(np.dot(I - np.dot(K, self.H), self.P), (I - np.dot(K, self.H)).T) + np.dot(np.dot(K, self.R), K.T)
         return self.x
-# Example usage
-F = np.array([[1, 1], [0, 1]]) 
-B = np.array([[0.5], [1]])     
-H = np.array([[1, 0]])         
-Q = np.array([[1, 0], [0, 1]]) 
-R = np.array([[1]])             
-# Initial state and covariance
-x0 = np.array([[0], [1]]) 
-P0 = np.array([[1, 0], [0, 1]]) 
-# Create Kalman Filter instance
-kf = KalmanFilter(F, B, H, Q, R, x0, P0)
-# Predict and update with the control input and measurement
-u = np.array([[1]])  
-z = np.array([[1]]) 
-# Predict step
-predicted_state = kf.predict(u)
-print("Predicted state:\n", predicted_state)
-# Update step
-updated_state = kf.update(z)
-print("Updated state:\n", updated_state)
