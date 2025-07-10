@@ -13,6 +13,9 @@ class robot:
         startPos = [0,0,0.1]
         startOrientation = p.getQuaternionFromEuler([0,0,0.45])
         self.boxId = p.loadURDF("urdf/vehicle_urdf/urdf/vehicle_urdf.urdf",startPos, startOrientation)
+        max_force = 0
+        mode = p.TORQUE_CONTROL
+        p.setJointMotorControlArray(self.boxId, [0, 1], controlMode=mode, forces=[max_force, max_force])
 
 
 class PID:
@@ -33,7 +36,7 @@ class PID:
         
         self.antiwindup()  
         
-        output = () + (self.Ki * self.integral) + (self.Kd * self.derivative)
+        output = (self.potential) + (self.Ki * self.integral) + (self.Kd * self.derivative)
         self.prev_error = error
         return output
 

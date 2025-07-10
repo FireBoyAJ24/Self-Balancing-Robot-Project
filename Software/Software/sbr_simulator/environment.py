@@ -7,7 +7,7 @@ from robot import *
 class environment():
 
     def __init__(self):
-        self.physicsClient = p.connect(p.DIRECT, options="--opengl2")
+        self.physicsClient = p.connect(p.GUI, options="--opengl2")
         p.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         p.setGravity(0,0,-9.81)
         self.planeId = p.loadURDF("plane.urdf")
@@ -28,9 +28,9 @@ def run_sim(dt, pid_const, gyro_sensor):
 
     setpoint = 0.0  # Desired pitch angle
 
-    mode = p.VELOCITY_CONTROL
+    mode = p.TORQUE_CONTROL
 
-    for i in range (100):
+    for i in range (10000):
         p.stepSimulation()
 
         # Get MPU data
@@ -41,8 +41,9 @@ def run_sim(dt, pid_const, gyro_sensor):
         pitch = gyro_sensor.get_pitch(accel_body)
 
         # PID control
-        pid = PID(Kp=pid_const[0], Ki=pid_const[1], Kd=pid_const[2], dt=dt, windup=1.0)
+        pid = PID(Kp=pid_const[0], Ki=pid_const[1], Kd=pid_const[2], dt=dt, windup=0.0)
         torque_output = pid.compute(setpoint, pitch)
+        print(torque_output)
 
         # Apply torque to the robot's joints
         p.setJointMotorControlArray(sbr.boxId, [0, 1], controlMode=mode, forces=[torque_output, torque_output])
@@ -102,13 +103,15 @@ def spin():
     # pid_brute_force()
 
     # Example usage of the run_sim function with a specific PID constant
-    pid_const = np.array([1.0, 350, 0.31])  # Example PID constants
+    pid_const = np.array([1.0, 300, 0.31])  # Example PID constants
     gyro_sensor = MPUSimulated(dt)
     
     run_sim(dt, pid_const, gyro_sensor)
 
     print("Plotting PID")
     gyro_sensor.plot_pid()
+
+
 
 
 # env = environment()

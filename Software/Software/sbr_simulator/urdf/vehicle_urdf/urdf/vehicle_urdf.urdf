@@ -60,6 +60,9 @@
         iyz="-2.63256202727207E-13"
         izz="7.71902332273961E-06" />
     </inertial>
+    <contact_coefficients
+      friction="0.5"
+      restitution="0.1" />
     <visual>
       <origin
         xyz="0 0 0"
@@ -113,6 +116,9 @@
         iyz="1.05905576794184E-21"
         izz="7.71902329738955E-06" />
     </inertial>
+    <contact_coefficients
+      friction="0.5"
+      restitution="0.1" />
     <visual>
       <origin
         xyz="0 0 0"
