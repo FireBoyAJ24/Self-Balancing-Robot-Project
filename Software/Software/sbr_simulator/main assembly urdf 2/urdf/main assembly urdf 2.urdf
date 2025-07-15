@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="main assembly urdf 2">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.000336179776168635 0.000354310774418248 0.0042734996800526"
+        rpy="0 0 0" />
+      <mass
+        value="0.539677095998046" />
+      <inertia
+        ixx="0.000264957198463207"
+        ixy="2.84909543588439E-07"
+        ixz="7.50259974067983E-08"
+        iyy="0.000613798841644977"
+        iyz="-2.77217301487706E-07"
+        izz="0.000765651566345422" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://main assembly urdf 2/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://main assembly urdf 2/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="left_link">
+    <inertial>
+      <origin
+        xyz="-1.08369629587823E-05 3.39454456535493E-06 3.23988610072476E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.0181212751055899" />
+      <inertia
+        ixx="1.53230236850118E-05"
+        ixy="1.09380617700153E-13"
+        ixz="1.04397213966285E-12"
+        iyy="7.71902602679728E-06"
+        iyz="-2.8596971978708E-13"
+        izz="7.71902332735251E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://main assembly urdf 2/meshes/left_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://main assembly urdf 2/meshes/left_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="l_joint"
+    type="continuous">
+    <origin
+      xyz="-0.075794 -0.0053089 -0.063666"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_link" />
+    <axis
+      xyz="1 0 0" />
+    <dynamics
+      friction="0.25" />
+  </joint>
+  <link
+    name="right_wheel">
+    <inertial>
+      <origin
+        xyz="1.08369629591015E-05 2.4980018054066E-16 3.257620492585E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.0181212751055898" />
+      <inertia
+        ixx="1.53230236850118E-05"
+        ixy="4.67129764216835E-21"
+        ixz="-1.04968659450167E-12"
+        iyy="7.71902605675847E-06"
+        iyz="1.00790823772942E-21"
+        izz="7.71902329738955E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://main assembly urdf 2/meshes/right_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://main assembly urdf 2/meshes/right_wheel.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="r_joint"
+    type="continuous">
+    <origin
+      xyz="0.085806 -0.0052464 -0.06367"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_wheel" />
+    <axis
+      xyz="1 0 0" />
+    <dynamics
+      friction="0.25" />
+  </joint>
+</robot>
